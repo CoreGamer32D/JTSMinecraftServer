@@ -1,3 +1,4 @@
+// src/index.js
 require('dotenv').config();
 const express = require('express');
 const http = require('http');
@@ -8,12 +9,15 @@ const routes = require('./routes');
 const { initializeLogger } = require('./utils/logger');
 const { connectDatabase } = require('./database');
 const { setupServerMonitoring } = require('./services/monitor');
-const { configureEnvironment } = require('./utils/config');
+const { configureEnvironment } = require('./config');
 
+// Initialize configuration
 const config = configureEnvironment();
 
+// Initialize logger
 const logger = initializeLogger(config.logging);
 
+// Create Express app
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -23,17 +27,20 @@ const io = socketIo(server, {
   }
 });
 
+// Security middleware
 app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 
+// Rate limiting
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 100, 
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use('/api/', apiLimiter);
 
+// CORS configuration
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (config.cors.origins.includes(origin)) {
@@ -44,6 +51,7 @@ app.use((req, res, next) => {
   next();
 });
 
+// Database connection
 connectDatabase(config.database)
   .then(() => logger.info('Database connected successfully'))
   .catch(err => {
@@ -51,6 +59,7 @@ connectDatabase(config.database)
     process.exit(1);
   });
 
+// Initialize Socket.IO for real-time communication
 io.on('connection', (socket) => {
   logger.info(`Client connected: ${socket.id}`);
 
@@ -64,10 +73,13 @@ io.on('connection', (socket) => {
   });
 });
 
+// Share socket.io instance with routes
 app.set('io', io);
 
+// Register routes
 app.use('/api', routes);
 
+// Error handler
 app.use((err, req, res, next) => {
   logger.error('Uncaught error', err);
   
@@ -81,17 +93,21 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Start server
 server.listen(config.port, () => {
   logger.info(`Server started on port ${config.port} in ${config.env} mode`);
   
+  // Set up server monitoring if enabled
   if (config.monitoring.enabled) {
     setupServerMonitoring(io);
   }
 });
 
+// Handle graceful shutdown
 const gracefulShutdown = async () => {
   logger.info('Shutting down gracefully...');
   
+  // Implement cleanup code here, like stopping all running MC servers
   const { stopAllServers } = require('./services/minecraft');
   await stopAllServers();
   
@@ -100,6 +116,7 @@ const gracefulShutdown = async () => {
     process.exit(0);
   });
   
+  // Force shutdown after timeout
   setTimeout(() => {
     logger.error('Could not close connections in time, forcefully shutting down');
     process.exit(1);
