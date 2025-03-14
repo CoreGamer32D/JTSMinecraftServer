@@ -1,4 +1,4 @@
-# Advanced Minecraft Server Backend
+# JTS Minecraft Services
 
 <div align="center">
 
