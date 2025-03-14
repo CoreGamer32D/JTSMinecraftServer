@@ -1,0 +1,39 @@
+@font-face {
+    font-family: 'Minecraft';
+    src: url('Minecraft.ttf') format('truetype');
+}
+
+body {
+    background-color: #2c2c2c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.monitor {
+    width: 400px;
+    height: 250px;
+    background-color: #000;
+    border: 10px solid #555;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.screen {
+    width: 90%;
+    height: 80%;
+    background-color: #1a1a1a;
+    color: #00ff00;
+    font-family: 'Minecraft', sans-serif;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    border-radius: 5px;
+    padding: 10px;
+}
